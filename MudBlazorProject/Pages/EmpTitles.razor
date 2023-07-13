@@ -1,0 +1,107 @@
+﻿@page "/titles"
+
+@using MudBlazorProject.Data
+@using System.ComponentModel.DataAnnotations
+@inject MudBlazorProject.IService.IEmpTitleService empTitleService
+@inject MudBlazor.ISnackbar snackBar
+
+
+<MudCard Elevation="25">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Add / Edit Title</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <EditForm Model="@empTitle">
+    <MudCardContent>
+        <MudForm Model="@empTitle" OnValidSubmit="HandleValidSubmit">
+                <MudTextField @bind-Value="empTitle.Title" For="@(() => empTitle.Title)" Label="Title" Variant="Variant.Text" Margin="Margin.Normal" />
+                <MudTextField @bind-Value="empTitle.CrteateDate" Label="Crteate Date" InputType="InputType.Date" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+                
+        <br />
+        @if (empTitle.ID == 0)
+        {
+             <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save">Save EmpTitle</MudButton>
+        }
+        else
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Update">Update EmpTitle</MudButton>
+        }
+        </MudForm>
+
+        </MudCardContent>
+    </EditForm>
+</MudCard>
+<br />
+<MudTable Elevation="25" Items="GetEmpTitles()" Filter="new Func<EmpTitle, bool>(Search)" @bind-empTitle="empTitle">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">EmpTitles</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString" Placeholder="Search for EmpTitles..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Title</MudTh>
+        <MudTh>Crteate Date</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Title">@context.Title</MudTd>
+        <MudTd DataLabel="CrteateDate">@context.CrteateDate</MudTd>
+        <MudTd DataLabel="">
+            <MudFab @onclick="@(()=>Edit(@context.ID))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(()=>Delete(@context.ID))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+
+
+@code {
+    private string searchString = "";
+    private EmpTitle empTitle = new EmpTitle();
+    //EmpTitle model = new EmpTitle();
+    private List<EmpTitle> empTitles = new List<EmpTitle>();
+
+    private bool Search(EmpTitle empTitle)
+    {
+        if (string.IsNullOrWhiteSpace(searchString)) return true;
+        if (empTitle.Title.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        return false;
+    }
+    protected override void OnInitialized()
+    {
+        GetEmpTitles();
+    }
+    private List<EmpTitle> GetEmpTitles()
+    {
+        empTitles = empTitleService.GetEmpTitles();
+        return empTitles;
+    }
+    private void Save()
+    {
+        empTitleService.AddEmpTitle(empTitle);
+        empTitle = new EmpTitle();
+        snackBar.Add("Save EmpTitle.", Severity.Success);
+        GetEmpTitles();
+    }
+    private void Update()
+    {
+        empTitleService.UpdateEmpTitle(empTitle);
+        empTitle = new EmpTitle();
+        snackBar.Add("Update EmpTitle.", Severity.Info);
+    }
+    private void Edit(int id)
+    {
+        empTitle = empTitles.FirstOrDefault(c => c.ID == id);
+    }
+    private void Delete(int id)
+    {
+        empTitleService.DeleteEmpTitle(id);
+        snackBar.Add("Delete EmpTitle.", Severity.Error);
+        GetEmpTitles();
+    }
+
+}

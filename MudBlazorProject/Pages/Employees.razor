@@ -1,0 +1,129 @@
+﻿@page "/employees"
+@using MudBlazorProject.Data
+@using System.ComponentModel.DataAnnotations
+@inject MudBlazorProject.IService.IEmployeeService employeeService
+@inject MudBlazor.ISnackbar snackBar
+
+
+<MudCard Elevation="25">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Add / Edit Employee</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+     <MudForm>
+    <MudCardContent>
+        <MudTextField @bind-Value="employee.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="employee.JoiningDate" Label="Joining Date" InputType="InputType.Date" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="employee.Department" Label="Department" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="employee.Designation" Label="Designation" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="employee.Mobile" Label="Mobile" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="employee.Email" Label="Email" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="employee.Salary" Label="Salary" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="employee.Address" Label="Address" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <br />
+        @if (employee.Id == 0)
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save">Save Employee</MudButton>
+        }
+        else
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Update">Update Employee</MudButton>
+        }
+        </MudCardContent>
+    </MudForm>
+</MudCard>
+<br />
+
+<MudTable Elevation="25" Items="GetEmployees()" Filter="new Func<Employee, bool>(Search)" @bind-employee="employee">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Employee</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString" Placeholder="Search for Employee..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Emp Name</MudTh>
+        <MudTh>Joining Date</MudTh>
+        <MudTh>Department</MudTh>
+        <MudTh>Designation</MudTh>
+        <MudTh>Mobile</MudTh>
+        <MudTh>Email</MudTh>
+        <MudTh>Salary</MudTh>
+        <MudTh>Address</MudTh>
+        <MudTh>Action</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="JoiningDate">@context.JoiningDate</MudTd>
+        <MudTd DataLabel="Department">@context.Department</MudTd>
+        <MudTd DataLabel="Designation">@context.Designation</MudTd>
+        <MudTd DataLabel="Mobile">@context.Mobile</MudTd>
+        <MudTd DataLabel="Email">@context.Email</MudTd>
+        <MudTd DataLabel="Salary">@context.Salary</MudTd>
+        <MudTd DataLabel="Address">@context.Address</MudTd>
+        <MudTd DataLabel="">
+            <MudFab @onclick="@(()=>Edit(@context.Id))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(()=>Delete(@context.Id))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+
+@code{
+    private string searchString = "";
+    private Employee employee = new Employee();
+    private List<Employee> employees = new List<Employee>();
+
+    private bool Search(Employee employee)
+    {
+        if (string.IsNullOrWhiteSpace(searchString)) return true;
+        if (employee.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+            || employee.Department.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+            || employee.Designation.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+            || employee.Mobile.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+            || employee.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+            || employee.Address.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    protected override void OnInitialized()
+    {
+        GetEmployees();
+    }
+
+    private List<Employee> GetEmployees()
+    {
+        employees = employeeService.GetEmployees();
+        return employees;
+    }
+
+    private void Save()
+    {
+        employeeService.AddEmployee(employee);
+        employee = new Employee();
+        snackBar.Add("Save Employee.", Severity.Success);
+        GetEmployees();
+    }
+    private void Update()
+    {
+        employeeService.UpdateEmployee(employee);
+        employee = new Employee();
+        snackBar.Add("Update Employee.", Severity.Info);
+    }
+
+    private void Edit(int id)
+    {
+        employee = employees.FirstOrDefault(e => e.Id == id);
+    }
+
+    private void Delete(int id)
+    {
+        employeeService.DeleteEmployee(id);
+        snackBar.Add("Delete Employee", Severity.Warning);
+        GetEmployees();
+    }
+}
+

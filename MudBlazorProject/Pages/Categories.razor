@@ -1,0 +1,103 @@
+﻿@page "/category"
+
+@using MudBlazorProject.Data
+@using System.ComponentModel.DataAnnotations
+@inject MudBlazorProject.IService.ICategoryService categoryService
+@inject MudBlazor.ISnackbar snackBar
+
+<MudCard Elevation="25">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Add / Edit Category</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <EditForm Model="@category">
+        <MudCardContent>
+            <MudForm Model="@category" OnValidSubmit="HandleValidSubmit">
+
+                <MudTextField @bind-Value="category.Name" For="@(() => category.Name)" Label="Category" Variant="Variant.Text" Margin="Margin.Normal" />
+
+                <br />
+                @if (category.Id == 0)
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Add">Save Category</MudButton>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Update">Update Category</MudButton>
+                }
+            </MudForm>
+
+        </MudCardContent>
+    </EditForm>
+</MudCard>
+<br />
+<MudTable Elevation="25" Items="GetCategories()" Filter="new Func<Category, bool>(Search)" @bind-category="category">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Category</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString" Placeholder="Search for category..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Name</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="">
+            <MudFab @onclick="@(()=>Edit(@context.Id))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(()=>Delete(@context.Id))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    private string searchString = "";
+    private Category category = new Category();
+    private List<Category> categories = new List<Category>();
+
+    private bool Search(Category category)
+    {
+        if (string.IsNullOrWhiteSpace(searchString)) return true;
+        if(category.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    //protected override void OnInitialized()
+    //{
+    //    GetCategories();
+    //}
+
+    private List<Category> GetCategories()
+    {
+        categories = categoryService.GetCategories();
+        return categories;
+    }
+
+    private void Add()
+    {
+        categoryService.AddCategory(category);
+        category = new Category();
+        snackBar.Add("Save category.", Severity.Success);
+        //GetCategories();
+    }
+    private void Update()
+    {
+        categoryService.UpdateCategory(category);
+        category = new Category();
+        snackBar.Add("Update Category.", Severity.Info);
+    }
+    private void Edit(int id)
+    {
+        category = categories.FirstOrDefault(c => c.Id == id);
+    }
+
+    private void Delete(int id)
+    {
+        categoryService.DeleteCategory(id);
+        snackBar.Add("Delete Category.", Severity.Error);
+    }
+}

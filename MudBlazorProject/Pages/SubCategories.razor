@@ -1,0 +1,101 @@
+﻿@page "/subcategory"
+
+@using MudBlazorProject.Data
+@using System.ComponentModel.DataAnnotations
+@inject MudBlazorProject.IService.ISubCategoryService subCategoryService
+@inject MudBlazor.ISnackbar snackBar
+
+<MudCard Elevation="25">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Add / Edit Sub Category</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <EditForm Model="@subCategory">
+        <MudCardContent>
+            <MudForm Model="@subCategory" OnValidSubmit="HandleValidSubmit">
+
+                <MudTextField @bind-Value="subCategory.Name" For="@(() => subCategory.Name)" Label="SubCategory" Variant="Variant.Text" Margin="Margin.Normal" />
+                @*<MudTextField @bind-Value="subCategory.Category" For="@(() => subCategory.Category)" Label="Category" Variant="Variant.Text" Margin="Margin.Normal" />*@
+
+                <MudTextField @bind-Value="subCategory.Category" For="@(() => subCategory.Category)" Label="Category" Variant="Variant.Text" Margin="Margin.Normal" />
+                @*<MudTextField @bind-Value="subCategory.Category" Label="Category" Variant="Variant.Text" Margin="Margin.Normal" />*@
+
+                <br />
+                @if (subCategory.Id == 0)
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Add">Save SubCategory</MudButton>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Update">Update SubCategory</MudButton>
+                }
+            </MudForm>
+
+        </MudCardContent>
+    </EditForm>
+</MudCard>
+<br />
+<MudTable Elevation="25" Items="GetSubCategories()" Filter="new Func<SubCategory, bool>(Search)" @bind-subCategory="subCategory">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Sub Category</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString" Placeholder="Search for Sub Category..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Name</MudTh>
+        <MudTh>Category</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Category">@context.Category.Name</MudTd>
+        <MudTd DataLabel="">
+            <MudFab @onclick="@(()=>Edit(@context.Id))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(()=>Delete(@context.Id))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    private string searchString = "";
+    private SubCategory subCategory=new SubCategory();
+    private List<SubCategory> subCategories = new List<SubCategory>();
+
+    private bool Search(SubCategory subCategory)
+    {
+        if (string.IsNullOrWhiteSpace(searchString)) return true;
+        if (subCategory.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private List<SubCategory> GetSubCategories()
+    {
+        subCategories = subCategoryService.GetSubCategories();
+        return subCategories;
+    }
+    private void Add()
+    {
+        subCategoryService.AddSubCategory(subCategory);
+        subCategory = new SubCategory();
+        snackBar.Add("Save SubCategory", Severity.Success);
+    }
+    private void Update()
+    {
+        subCategoryService.UpdateSubCategory(subCategory);
+        subCategory = new SubCategory();
+        snackBar.Add("Update SubCategory", Severity.Info);
+    }
+    private void Edit(int id)
+    {
+        subCategory = subCategories.FirstOrDefault(s => s.Id == id);
+    }
+    private void Delete(int id)
+    {
+        subCategoryService.DeleteSubCategory(id);
+        snackBar.Add("Delete SubCategory", Severity.Error);
+    }
+}
