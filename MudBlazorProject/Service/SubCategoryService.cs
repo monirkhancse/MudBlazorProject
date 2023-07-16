@@ -13,9 +13,25 @@ namespace MudBlazorProject.Service
             _context = context;
         }
 
+        public List<SubCategory> GetSubCategories()
+        {
+         return _context.SubCategories.ToList();
+        }
+
+        public SubCategory? GetSubCategoryById(int id)
+        {
+            return _context.SubCategories.FirstOrDefault(s => s.Id == id);
+        }
+
         public void AddSubCategory(SubCategory subCategory)
         {
             _context.SubCategories.Add(subCategory);
+            _context.SaveChanges();
+        }
+
+        public void UpdateSubCategory(SubCategory subCategory)
+        {
+            _context.SubCategories.Update(subCategory);
             _context.SaveChanges();
         }
 
@@ -27,22 +43,6 @@ namespace MudBlazorProject.Service
                 _context.SubCategories.Remove(subCategory);
                 _context.SaveChanges();
             }
-        }
-
-        public List<SubCategory> GetSubCategories()
-        {
-            return _context.SubCategories.ToList();
-        }
-
-        public SubCategory? GetSubCategoryById(int id)
-        {
-            return _context.SubCategories.SingleOrDefault(s => s.Id == id);
-        }
-
-        public void UpdateSubCategory(SubCategory subCategory)
-        {
-            _context.SubCategories.Update(subCategory);
-            _context.SaveChanges();
         }
     }
 }
